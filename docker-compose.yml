@@ -1,0 +1,30 @@
+version: '3'
+services:
+  cassh-server:
+    build:
+      context: ./src/server
+      dockerfile: Dockerfile
+    image: leboncoin/cassh-server:latest
+    env_file: 
+      - docker-config.env
+    volumes:
+      - cassh-keys:/opt/cassh/server/keys
+      - ./ssl/:/opt/cassh/server/keys/ssl:ro
+    ports:
+      - "8080:8080"
+    links:
+      - db:db
+    depends_on:
+      - db
+  db:
+    image: postgres:9.5
+    env_file: 
+      - docker-config.env
+    volumes:
+      - ./src/server/sql/model.sql:/docker-entrypoint-initdb.d/cassh_model.sql
+      - postgres-data:/var/lib/postgresql/data
+volumes:
+  cassh-keys:
+    driver: local
+  postgres-data:
+    driver: local
