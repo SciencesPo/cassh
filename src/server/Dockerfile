@@ -17,3 +17,5 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . server/
+
+RUN /bin/cp /opt/cassh/server/conf/cassh.docker.conf /opt/cassh/server/conf/cassh.conf

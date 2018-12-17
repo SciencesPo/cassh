@@ -12,6 +12,7 @@ from re import compile as re_compile
 from tempfile import NamedTemporaryFile
 from time import time
 from urllib import unquote_plus
+from os import environ
 
 # Third party library imports
 from configparser import ConfigParser, NoOptionError
@@ -53,7 +54,7 @@ ARGS = PARSER.parse_args()
 if not ARGS.config:
     PARSER.error('--config argument is required !')
 
-CONFIG = ConfigParser()
+CONFIG = ConfigParser(environ)
 CONFIG.read(ARGS.config)
 SERVER_OPTS = {}
 SERVER_OPTS['ca'] = CONFIG.get('main', 'ca')
@@ -250,7 +251,7 @@ def ldap_authentification(admin=False):
                     if entry[1][SERVER_OPTS['ldap_username_field']][0] == realname:
                         user_dn = entry[0]
         except Exception as e:
-            return False, 'Error: LDAP user search (%s)' % e
+            return False, 'Error: LDAP user search %s (%s)' % e
         try:
             ldap_conn_user = ldap_open(SERVER_OPTS['ldap_host'],port=int(SERVER_OPTS['ldap_port']))
             ldap_conn_user.bind_s(user_dn, password)
