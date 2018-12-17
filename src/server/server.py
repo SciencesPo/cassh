@@ -84,8 +84,11 @@ if CONFIG.has_section('ldap'):
         SERVER_OPTS['ldap_host'] = CONFIG.get('ldap', 'host')
         SERVER_OPTS['ldap_port'] = CONFIG.get('ldap', 'port')
         SERVER_OPTS['ldap_bind_dn'] = CONFIG.get('ldap', 'bind_dn')
+        SERVER_OPTS['ldap_bind_password'] = CONFIG.get('ldap', 'bind_password')
+        SERVER_OPTS['ldap_base_dn'] = CONFIG.get('ldap', 'base_dn')
         SERVER_OPTS['ldap_admin_cn'] = CONFIG.get('ldap', 'admin_cn')
-        SERVER_OPTS['filterstr'] = CONFIG.get('ldap', 'filterstr')
+        SERVER_OPTS['ldap_username_field'] = CONFIG.get('ldap', 'username_field')
+        SERVER_OPTS['ldap_search_filter'] = CONFIG.get('ldap', 'search_filter')
     except NoOptionError:
         if ARGS.verbose:
             print('Option reading error (ldap).')
@@ -227,9 +230,32 @@ def ldap_authentification(admin=False):
             return False, 'Error: password is empty.'
         ldap_conn = ldap_open(SERVER_OPTS['ldap_host'],port=int(SERVER_OPTS['ldap_port']))
         try:
-            ldap_conn.bind_s(realname, password)
+            ldap_conn.bind_s(SERVER_OPTS['ldap_bind_dn'], SERVER_OPTS['ldap_bind_password'])
         except Exception as e:
-            return False, 'Error: %s' % e
+            return False, 'Error: LDAP Bind DN (%s)' % e
+        try:
+            entries = ldap_conn.search_s(
+                SERVER_OPTS['ldap_base_dn'],
+                SCOPE_SUBTREE,
+                filterstr='(&(%s=%s)%s)' % (
+                    SERVER_OPTS['ldap_username_field'],
+                    realname,
+                    SERVER_OPTS['ldap_search_filter']))
+            if len(entries) == 0:
+                return False, 'Error: LDAP User not found %s' % e
+            else:
+                for entry in entries:
+                    if entry[1][SERVER_OPTS['ldap_username_field']][0] == realname:
+                        user_dn = entry[0]
+        except Exception as e:
+            return False, 'Error: LDAP user search (%s)' % e
+        try:
+            ldap_conn_user = ldap_open(SERVER_OPTS['ldap_host'],port=int(SERVER_OPTS['ldap_port']))
+            ldap_conn_user.bind_s(user_dn, password)
+            ldap_conn_user.unbind()
+        except Exception as e:
+            return False, 'Error: Unable to bind User DN (%s)' % e
+
         if admin:
             memberof_admin_list = ldap_conn.search_s(
                 SERVER_OPTS['ldap_bind_dn'],
