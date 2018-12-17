@@ -64,6 +64,7 @@ try:
 except NoOptionError:
     SERVER_OPTS['admin_db_failover'] = False
 SERVER_OPTS['ldap'] = False
+SERVER_OPTS['ldap_port'] = 389
 SERVER_OPTS['ssl'] = False
 
 if CONFIG.has_section('postgres'):
@@ -81,6 +82,7 @@ if CONFIG.has_section('ldap'):
     try:
         SERVER_OPTS['ldap'] = True
         SERVER_OPTS['ldap_host'] = CONFIG.get('ldap', 'host')
+        SERVER_OPTS['ldap_port'] = CONFIG.get('ldap', 'port')
         SERVER_OPTS['ldap_bind_dn'] = CONFIG.get('ldap', 'bind_dn')
         SERVER_OPTS['ldap_admin_cn'] = CONFIG.get('ldap', 'admin_cn')
         SERVER_OPTS['filterstr'] = CONFIG.get('ldap', 'filterstr')
@@ -223,7 +225,7 @@ def ldap_authentification(admin=False):
             return False, 'Error: No password option given.'
         if password == '':
             return False, 'Error: password is empty.'
-        ldap_conn = ldap_open(SERVER_OPTS['ldap_host'])
+        ldap_conn = ldap_open(SERVER_OPTS['ldap_host'],port=int(SERVER_OPTS['ldap_port']))
         try:
             ldap_conn.bind_s(realname, password)
         except Exception as e:
