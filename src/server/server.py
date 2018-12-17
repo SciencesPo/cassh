@@ -89,6 +89,8 @@ if CONFIG.has_section('ldap'):
         SERVER_OPTS['ldap_admin_cn'] = CONFIG.get('ldap', 'admin_cn')
         SERVER_OPTS['ldap_username_field'] = CONFIG.get('ldap', 'username_field')
         SERVER_OPTS['ldap_search_filter'] = CONFIG.get('ldap', 'search_filter')
+        SERVER_OPTS['ldap_membership_field'] = CONFIG.get('ldap', 'membership_field')
+        SERVER_OPTS['ldap_groups_base_dn'] = CONFIG.get('ldap', 'groups_base_dn')
     except NoOptionError:
         if ARGS.verbose:
             print('Option reading error (ldap).')
@@ -258,12 +260,12 @@ def ldap_authentification(admin=False):
 
         if admin:
             memberof_admin_list = ldap_conn.search_s(
-                SERVER_OPTS['ldap_bind_dn'],
+                SERVER_OPTS['ldap_groups_base_dn'],
                 SCOPE_SUBTREE,
-                filterstr='(&(%s=%s)(memberOf=%s))' % (
-                    SERVER_OPTS['filterstr'],
-                    realname,
-                    SERVER_OPTS['ldap_admin_cn']))
+                filterstr='(&(cn=%s)(%s=%s))' % (
+                    SERVER_OPTS['ldap_admin_cn'],
+                    SERVER_OPTS['ldap_membership_field'],
+                    user_dn))
             if not memberof_admin_list:
                 return False, 'Error: user %s is not an admin.' % realname
     return True, 'OK'
