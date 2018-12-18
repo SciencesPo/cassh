@@ -1,5 +1,21 @@
 version: '3'
 services:
+  cassh-web:
+    build:
+      context: ./src/server/web/
+      dockerfile: Dockerfile
+    image: leboncoin/cassh-web:latest
+    env_file:
+      - docker-config.env
+    volumes:
+      - ./ssl/:/opt/cassh/web/keys/ssl:ro
+    ports:
+      - "443:443"
+    links:
+      - cassh-server
+    depends_on:
+      - db
+      - cassh-server
   cassh-server:
     build:
       context: ./src/server
