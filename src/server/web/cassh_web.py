@@ -17,6 +17,7 @@ from requests import post, put
 from requests.exceptions import ConnectionError
 from urllib3 import disable_warnings
 from werkzeug import secure_filename
+from flask_env import MetaFlaskEnv
 
 # Disable HTTPs warnings
 disable_warnings()
@@ -24,8 +25,14 @@ disable_warnings()
 # Debug
 # from pdb import set_trace as st
 
+class docker_configuration(metaclass=MetaFlaskEnv):
+    ENV_PREFIX = 'WEB_'
+    ENV_LOAD_ALL = True
+
 APP = Flask(__name__)
 APP.config.from_pyfile('settings.txt')
+APP.config.from_object(docker_configuration)
+
 # These are the extension that we are accepting to be uploaded
 APP.config['ALLOWED_EXTENSIONS'] = set(['pub'])
 
