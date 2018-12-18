@@ -251,7 +251,7 @@ def ldap_authentification(admin=False):
                     if entry[1][SERVER_OPTS['ldap_username_field']][0] == realname:
                         user_dn = entry[0]
         except Exception as e:
-            return False, 'Error: LDAP user search %s (%s)' % e
+            return False, 'Error: LDAP user search (%s)' % e
         try:
             ldap_conn_user = ldap_open(SERVER_OPTS['ldap_host'],port=int(SERVER_OPTS['ldap_port']))
             ldap_conn_user.bind_s(user_dn, password)
