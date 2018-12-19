@@ -450,6 +450,7 @@ class Admin():
 
         for key, value in payload.items():
             if key == 'expiry':
+                value = unquote_plus(value)
                 pattern = re_compile('^\\+([0-9]+)+[dh]$')
                 if pattern.match(value) is None:
                     return 'ERROR: Value %s is malformed. Should match pattern ^\\+([0-9]+)+[dh]$' \
